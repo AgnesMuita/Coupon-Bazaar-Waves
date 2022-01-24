@@ -1,7 +1,7 @@
 import * as React from 'react';
 import ReactDOM from "react-dom";
 
-
+//class based component
 class App extends React.Component{
     constructor(props){
       super(props);
@@ -40,15 +40,15 @@ if (app){
 
 
 
+//functional component
 export const Application = ()=>{
     function authorizationFunction(){
-        console.log("Authorization")
         const authData = {data:"Auth on my site"};
+
         if (WavesKeeper){
             WavesKeeper.auth(authData)
-            
-            .then(auth=>{
-                console.log(auth)
+            .then((response)=>{
+                console.log(response)
             })
             .catch(e=>{
                 console.log(e)
@@ -62,7 +62,7 @@ export const Application = ()=>{
     }
     return (
           <div className='container'>
-              <input className='btn btn-primary' type="submit" value="Auth" onClick={authorizationFunction()}/>
+              <input className='btn btn-primary' type="submit" value="Auth" onClick={()=>{authorizationFunction();console.log("")}}/>
           </div>
       )
 }
