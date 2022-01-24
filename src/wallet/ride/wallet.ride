@@ -1,0 +1,45 @@
+{-# STLIB-VERSION 3 #-}
+{-# CONTENT_TYPE DAPP#-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+@Callable(i)
+func deposit()={
+    // creating a variable with all data about a payment attached to the invokation 
+    let pmt = extract(i.payment)
+    if (isDefined(pmt.assetId)) then throw("can only handle waves at the moment")
+    else{
+      // determining the caller key
+      let currentKey = toBase58String(i.caller.bytes)
+      // reading the user's current balance from the account state
+      let currentAmount = match getInteger(this, currentKey){
+        case a:Int=>a
+        // taking zero as the balance value if this is the user's first deposit
+        case _=>0 
+      }
+      let newAmount = currentAmount + pmt.newAmount
+      WriteSet([DataEntry(currentKey, newAmount)])
+    // this updates the user's balance in the account state
+    }
+}
+@Callable(i)
+func withdraw(amount:Int)={
+    let currentKey = toBase58String(i.caller.bytes)
+    let callerAmount = match getInteger(this, currentKey){
+        case a:Int => a
+        case _=>0
+}
+let newAmount=currentAmount-amount
+if (amount<0)
+  then throw ("Can't withdraw negative amount")
+else if (newAmount<0)
+  then throw ("Not enough Balance")
+  else ScriptResult(
+      //to save new balance to the account state
+      WriteSet([DataEntry(currentKey, newAmount)]),
+      // to transfer the withdrawn amount to the user
+      TransferSet([ScriptTransfer(i.caller, amount, unit)])
+  )
+}
+@Verifier(tx)
+func verify()= false
+//this script cannot be updated because of this verifier function 
