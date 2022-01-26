@@ -1,0 +1,26 @@
+{-# STLIB-VERSION 3 #-}
+{-# CONTENT_TYPE DAPP#-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+@Callable(i)
+func purchase()={
+    let pmt = extract(i.payment)
+    if (isDefined(pmt.assetId)) then throw("can only handle waves at the moment")
+    else{
+      let customerAddress = toBase58String(i.caller.bytes)
+      let price = match getInteger(this, "Item_A_Coupon_Price"){
+        case a:Int=>a
+        case _=>0 
+      }
+      if (pmt.amount < price) then throw ("Purchase amount cannot be less than item price")
+      else if (pmt.amount > price ) then throw ("Purchase amount cannot be higher than item price")
+      else {
+          WriteSet([
+            DataEntry("status:purchase_item_A_customer_"+ customerAddress, "confirmed"),
+            DataEntry("price:purchase_item_A_customer_"+ customerAddress, price),
+
+      ])
+    }
+    // this updates the user's balance in the account state
+    }
+}

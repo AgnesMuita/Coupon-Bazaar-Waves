@@ -12,6 +12,7 @@ func deposit()={
       let currentKey = toBase58String(i.caller.bytes)
       // reading the user's current balance from the account state
       let currentAmount = match getInteger(this, currentKey){
+        // if there is an integer, then we take that value
         case a:Int=>a
         // taking zero as the balance value if this is the user's first deposit
         case _=>0 
