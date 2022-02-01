@@ -1,0 +1,33 @@
+{-# STDLIB_VERSION 2 #-}
+{-# CONTENT_TYPE EXPRESSION #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+#define public keys
+let alicePubKey  = base58'5AzfA9UfpWVYiwFwvdr77k6LWupSTGLb14b24oVdEpMM'
+let bobPubKey    = base58'2KwU4vzdgPmKyf7q354H9kSyX9NZjNiq4qbnH2wi2VDF'
+let cooperPubKey = base58'GbrUeGaBfmyFJjSQb9Z8uTCej5GzjXfRDVGJGrmgt5cD'
+
+@Verifier(tx){
+func verify(){
+    let alice1=sigVerify(tx.bodyBytes, tx.proofs[0], alicePubKey)
+    let alice2=sigVerify(tx.bodyBytes, tx.proofs[1], alicePubKey)
+    let alice3=sigVerify(tx.bodyBytes, tx.proofs[2], alicePubKey)
+
+    let bob1=sigVerify(tx.bodyBytes, tx.proofs[0], bobPubKey)
+    let bob2=sigVerify(tx.bodyBytes, tx.proofs[1], bobPubKey)
+    let bob3=sigVerify(tx.bodyBytes, tx.proofs[2], bobPubKey)
+
+    let cooper1=sigVerify(tx.bodyBytes, tx.proofs[0], cooperPubKey)
+    let cooper2=sigVerify(tx.bodyBytes, tx.proofs[0], cooperPubKey)
+    let cooper3=sigVerify(tx.bodyBytes, tx.proofs[0], cooperPubKey)
+
+    let aliceAndBob  = (alice1 && bob2) || (alice1 && bob3) ||(alice2 && bob3) || (alice3 && bob1) ||(alice3 && bob2)
+    let aliceAndCooper  = (alice1 && cooper2) || (alice1 && cooper3) ||(alice2 && cooper3) || (alice3 && cooper1) ||(alice3 && cooper2)
+    let bobandCooper  = (cooper1 && bob2) || (cooper1 && bob3) ||(cooper2 && bob1) || (cooper2 && bpb3) ||(cooper3 && bob1) || (cooper3 && bob2)
+
+    match tx{
+      case_ =>aliceAndBob || aliceAndCooper || bobandCooper
+    }
+  }
+
+}
