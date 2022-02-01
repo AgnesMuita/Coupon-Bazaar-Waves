@@ -62,7 +62,7 @@ export const Application = ()=>{
     }
     return (
           <div className='container'>
-              <input className='btn btn-primary' type="submit" value="Auth" onClick={()=>{authorizationFunction();console.log("")}}/>
+              <input className='btn btn-primary' type="submit" value="Auth1" onClick={()=>{authorizationFunction();console.log("")}}/>
           </div>
       )
 }
