@@ -1,0 +1,82 @@
+{-# STDLIB_VERSION 2 #-}
+{-# CONTENT_TYPE EXPRESSION #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+func getStringByKey(key:String)={
+    match getString(this,key){
+        case a:String => a #If you find the value with type string, then return it
+        case _=> NONE #otherwise return NONE value
+    }
+}
+
+func getKeyItem(supplier:String,title:String)={
+    let supplierTitle = supplier + title
+    "item_" + supplierTitle.toBytes().sha256().toBase58String()
+}
+func getKeyItemSupplier(item:String) = item + "_owner";
+func getKeyItemPrice(item:String)= item + "_price";
+func getKeyItemData(item:String) = item + "_data";
+
+
+
+func getValueItemSupplier(account:String)={
+    getStringByKey(getKeyItemSupplier(account))
+}
+func getKeyUserItemCounter(user:String, item:String)= {
+    item + "_" + user + "_cnt"
+}
+func getKeyBalanceSupplier(account:String)={
+    account + "_balance"
+}
+
+func getValueBalanceSupplier(account:String)={
+    let supplierBalanceKey = getKeyBalanceSupplier(account)
+    match getInteger(this, supplierBalanceKey){
+      case a:Int=>a
+      case _=> 0
+    }
+}
+
+func getValueUserItemsCounter(user:String, item:String)={
+    let userItemCounterKey = getKeyUserItemCounter(user,item)
+    match getInteger(this,userItemCounterKey){
+        case a:Int=>a
+        case _=>0
+    }
+}
+func getValueItemPrice(item:String)={
+    let keyItemPrice = getKeyItemPrice(item)
+    getIntegerValue(this, keyItemPrice)
+}
+
+func getValueItemStatus(item:String)=getStringByKey(getKeyItemStatus(item))
+func getValueVotesCount(item:String, vote:String)=getIntegerByKey(getKeyVotesCount(item, vote))
+
+
+
+@Callable(i)
+func purchaseItem(item:String) = {
+    let pmt = i.payment.extract()
+    if (isDefined(pmt.assetId)) then throw ("You can buy tokens only with Waves Tokens")
+    else{
+        let userAddress = i.caller.bytes.toBase58String()
+        let price = getValueItemPrice(item)
+        let supplierAddress = getValueItemSupplier(item)
+        if(pmt.amount < price) then throw("Purchase amount cannot be less than the amount price")
+        else if(pmt.amount > price) then throw("Purchase amount cannot be higher than the amount price")
+        else if (supplierAddress == NONE ) then throw ("Supplier does not exist")
+        else {
+            let userItemCounter = getKeyUserItemCounter(userAddress, item)
+            let newValueUserItemCounter = getValueUserItemCounter(userAddress, item) + 1
+            let supplierBalanceKey = getKeyBalanceSupplier(supplierAddress)
+            let newSupplierBalance = getValueBalanceSupplier(supplierAddress)+pmt.amount
+            WriteSet([  
+                DataEntry(userItemCounter, newValueUserItemCounter)
+                DataEntry(supplierBalanceKey, newSupplierBalance)
+            ])
+        }
+    }   
+}
+
+
+
